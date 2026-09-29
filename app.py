@@ -1,6 +1,6 @@
 """
-🎮 Bee's _ Detector de Texto Emocional — Xbox 360 Dashboard Style
-Aplicación Streamlit inspirada en la interfaz clásica NXE de Xbox 360.
+⚙️ Bee's _ Detector de Texto Emocional
+Aplicación Streamlit con interfaz metálica, neón verde y estética futurista Y2K.
 
 Requisitos:
     pip install streamlit textblob pandas googletrans==4.0.0-rc1
@@ -12,160 +12,163 @@ from textblob import TextBlob
 import re
 
 # ─────────────────────────────────────────────
-# CONFIGURACIÓN PÁGINA XBOX 360
+# CONFIGURACIÓN DE PÁGINA
 # ─────────────────────────────────────────────
 st.set_page_config(
     page_title="Bee's _ Detector de Texto Emocional",
-    page_icon="🎮",
+    page_icon="🟢",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ─────────────────────────────────────────────
-# ESTILOS XBOX 360 DASHBOARD (GREEN NEON / DARK HUD)
+# ESTILOS METÁLICOS / FUTURISTAS RETRO
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-    /* Fondo Degradado Xbox 360 Dashboard */
+    /* Fondo Degradado Metálico Oscuro */
     .stApp {
-        background: radial-gradient(circle at 50% 10%, #1e3919 0%, #0d130c 50%, #050805 100%) !important;
+        background: radial-gradient(circle at 50% 10%, #152417 0%, #090f0a 60%, #020503 100%) !important;
         background-attachment: fixed !important;
-        color: #e6e6e6 !important;
+        color: #e0e0e0 !important;
         font-family: 'Rajdhani', sans-serif !important;
     }
 
-    /* Sidebar - Menú Guía Xbox */
+    /* Sidebar - Panel Lateral de Control Metálico */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #107c41 0%, #0a3d20 40%, #051a0d 100%) !important;
-        border-right: 3px solid #9bf00b !important;
-        box-shadow: 10px 0px 25px rgba(155, 240, 11, 0.2);
+        background: linear-gradient(180deg, #1c261e 0%, #0d140e 50%, #050805 100%) !important;
+        border-right: 2px solid #00ff66 !important;
+        box-shadow: 8px 0px 20px rgba(0, 255, 102, 0.15);
     }
     [data-testid="stSidebar"] * {
         color: #ffffff !important;
         font-family: 'Rajdhani', sans-serif !important;
     }
 
-    /* Encabezado Xbox / Gamer Tag Header */
-    .xbox-header {
-        background: linear-gradient(90deg, #107c41 0%, #1e592f 50%, #000000 100%);
-        border-left: 8px solid #9bf00b;
-        border-bottom: 2px solid #9bf00b;
-        padding: 18px 25px;
-        border-radius: 4px;
+    /* Header Metálico / HUD Cyber */
+    .cyber-header {
+        background: linear-gradient(180deg, #2a3d2d 0%, #111a12 100%);
+        border: 2px solid #00ff66;
+        border-radius: 6px;
+        padding: 20px 25px;
         margin-bottom: 25px;
-        box-shadow: 0px 4px 15px rgba(16, 124, 65, 0.6);
+        box-shadow: 0px 0px 20px rgba(0, 255, 102, 0.3), inset 0px 1px 0px rgba(255, 255, 255, 0.2);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
     
-    .xbox-title {
+    .cyber-title {
         font-family: 'Orbitron', sans-serif !important;
         color: #ffffff !important;
-        font-size: 2rem;
+        font-size: 2.1rem;
         font-weight: 900;
         letter-spacing: 2px;
         text-transform: uppercase;
         margin: 0;
-        text-shadow: 0px 0px 10px #9bf00b;
+        text-shadow: 0px 0px 12px #00ff66;
     }
 
-    .xbox-badge {
-        background: #9bf00b;
+    .cyber-badge {
+        background: linear-gradient(180deg, #00ff66 0%, #009933 100%);
         color: #000000;
-        padding: 4px 12px;
+        padding: 6px 14px;
         font-weight: bold;
         font-family: 'Orbitron', sans-serif;
-        border-radius: 3px;
+        border-radius: 4px;
         font-size: 0.85rem;
+        letter-spacing: 1px;
+        box-shadow: 0px 0px 10px #00ff66;
     }
 
-    /* Tarjetas de Interfaz / Blades estilo Xbox */
-    .xbox-blade {
-        background: rgba(20, 25, 22, 0.85);
-        border: 1px solid #107c41;
-        border-top: 4px solid #9bf00b;
+    /* Modulos / Tarjetas con Bisel Metálico */
+    .cyber-card {
+        background: linear-gradient(135deg, rgba(25, 36, 27, 0.9) 0%, rgba(10, 15, 11, 0.95) 100%);
+        border: 1px solid #00ff66;
+        border-top: 3px solid #00ff66;
         border-radius: 6px;
         padding: 22px;
         margin-bottom: 20px;
-        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(5px);
+        box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
     }
 
-    .blade-title {
+    .card-title {
         font-family: 'Orbitron', sans-serif;
-        color: #9bf00b;
+        color: #00ff66;
         font-size: 1.2rem;
         margin-bottom: 15px;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.5px;
         display: flex;
         align-items: center;
         gap: 10px;
+        text-shadow: 0px 0px 8px rgba(0, 255, 102, 0.5);
     }
 
-    /* Estilo de Cajas de Texto e Inputs */
+    /* Entrada de Texto Terminal */
     textarea, input[type="text"] {
-        background-color: #0d130c !important;
-        border: 2px solid #107c41 !important;
+        background-color: #060a07 !important;
+        border: 2px solid #1e4d2b !important;
         border-radius: 4px !important;
-        color: #9bf00b !important;
+        color: #00ff66 !important;
         font-family: 'Rajdhani', sans-serif !important;
-        font-size: 1.1rem !important;
+        font-size: 1.15rem !important;
         font-weight: 600 !important;
     }
     textarea:focus, input[type="text"]:focus {
-        border-color: #9bf00b !important;
-        box-shadow: 0px 0px 10px rgba(155, 240, 11, 0.5) !important;
+        border-color: #00ff66 !important;
+        box-shadow: 0px 0px 12px rgba(0, 255, 102, 0.6) !important;
     }
 
-    /* Botones de Mando Xbox (A Button Glow) */
+    /* Botones de Comando Neón */
     .stButton > button {
-        background: linear-gradient(180deg, #107c41 0%, #0b4f29 100%) !important;
+        background: linear-gradient(180deg, #1c4d28 0%, #0a2612 100%) !important;
         color: #ffffff !important;
-        border: 2px solid #9bf00b !important;
+        border: 2px solid #00ff66 !important;
         border-radius: 4px !important;
         font-family: 'Orbitron', sans-serif !important;
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
         letter-spacing: 1.5px !important;
-        padding: 10px 20px !important;
+        padding: 12px 20px !important;
         transition: all 0.2s ease !important;
         width: 100%;
-        box-shadow: 0px 0px 10px rgba(16, 124, 65, 0.4) !important;
+        box-shadow: 0px 0px 12px rgba(0, 255, 102, 0.3) !important;
     }
     .stButton > button:hover {
-        background: #9bf00b !important;
+        background: #00ff66 !important;
         color: #000000 !important;
-        box-shadow: 0px 0px 20px #9bf00b !important;
+        box-shadow: 0px 0px 25px #00ff66 !important;
         cursor: pointer;
     }
 
-    /* Indicador de Logro / Gamercard Result */
-    .achievement-unlocked {
-        background: linear-gradient(90deg, #107c41 0%, #18281a 100%);
-        border: 2px solid #9bf00b;
-        border-radius: 5px;
-        padding: 15px;
+    /* Módulo de Alerta de Diagnóstico */
+    .status-box {
+        background: linear-gradient(90deg, #122917 0%, #08120a 100%);
+        border: 2px solid #00ff66;
+        border-radius: 6px;
+        padding: 16px;
         display: flex;
         align-items: center;
         gap: 15px;
-        box-shadow: 0px 0px 15px rgba(155, 240, 11, 0.4);
+        box-shadow: 0px 0px 15px rgba(0, 255, 102, 0.3);
         margin-top: 15px;
     }
 
-    /* Custom Progress Bar Xbox Green */
+    /* Barra de Progreso Personalizada */
     .stProgress > div > div > div > div {
-        background-color: #9bf00b !important;
+        background-color: #00ff66 !important;
+        box-shadow: 0px 0px 10px #00ff66;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# FUNCIONES DE PROCESAMIENTO
+# FUNCIONES DE ANÁLISIS
 # ─────────────────────────────────────────────
 
 def contar_palabras(texto):
@@ -243,85 +246,86 @@ def procesar_texto(texto):
     }
 
 # ─────────────────────────────────────────────
-# HEADER DASHBOARD
+# ENCABEZADO
 # ─────────────────────────────────────────────
 st.markdown("""
-<div class="xbox-header">
+<div class="cyber-header">
     <div>
-        <h1 class="xbox-title">Bee's _ Detector de Texto Emocional</h1>
-        <span style="color: #a3c2a0; font-size: 0.95rem;">SYSTEM DASHBOARD // SENTIMENT DECODING HUD</span>
+        <h1 class="cyber-title">Bee's _ Detector de Texto Emocional</h1>
+        <span style="color: #00ff66; font-size: 0.9rem; letter-spacing: 1px;">SYSTEM HUD // ANALIZADOR DE TELEMETRÍA TEXTUAL</span>
     </div>
-    <div class="xbox-badge">XBOX LIVE 360</div>
+    <div class="cyber-badge">SYSTEM ONLINE</div>
 </div>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# SIDEBAR / GUÍA XBOX
+# PANEL LATERAL
 # ─────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🎮 GAMER CARD")
+    st.markdown("### ⚙️ PANEL DE CONTROL")
     st.markdown("""
-    <div style="background: rgba(0,0,0,0.5); padding: 12px; border-left: 4px solid #9bf00b; border-radius: 4px;">
-        <b style="color:#9bf00b;">Gamertag:</b> Bee_Master_360<br>
-        <b style="color:#9bf00b;">GamerScore:</b> 25,400 G<br>
-        <b>Estado:</b> En línea en Xbox Live 🟢
+    <div style="background: rgba(0,0,0,0.6); padding: 12px; border-left: 3px solid #00ff66; border-radius: 4px;">
+        <b style="color:#00ff66;">Núcleo:</b> Matrix-2000<br>
+        <b style="color:#00ff66;">Frecuencia:</b> 60 Hz<br>
+        <b>Estado:</b> Procesando señales... 🟢
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown("---")
-    st.markdown("### 🕹️ MODO DE ENTRADA")
+    st.markdown("### 📥 MODO DE INGRESO")
     modo = st.selectbox(
-        "Selecciona fuente de datos:",
+        "Seleccionar fuente:",
         ["Entrada Directa", "Archivo de Texto"]
     )
     
     st.markdown("---")
     st.markdown("""
-    <div style="font-size: 0.85rem; color: #a3c2a0;">
-        <b>[A] Seleccionar</b><br>
-        <b>[B] Atrás</b><br>
-        <b>[X] Escanear Texto</b>
+    <div style="font-size: 0.85rem; color: #88aa8f; font-family: 'Orbitron';">
+        > READY FOR DATA INPUT<br>
+        > WAITING FOR USER SIGNAL...
     </div>
     """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# PANEL PRINCIPAL
+# CUERPO PRINCIPAL
 # ─────────────────────────────────────────────
-col_left, col_right = st.columns([2.5, 1])
+col_main, col_info = st.columns([2.5, 1])
 
-with col_left:
+with col_main:
     st.markdown("""
-    <div class="xbox-blade">
-        <div class="blade-title">📡 Entrada de Señal de Texto</div>
+    <div class="cyber-card">
+        <div class="card-title">📡 Terminal de Entrada de Texto</div>
     """, unsafe_allow_html=True)
 
     if modo == "Entrada Directa":
-        texto = st.text_area("", height=160, placeholder="Escribe el comando o frase a escanear...")
-        if st.button("PRESS [A] TO ANALYZE // INICIAR ESCANEO"):
+        texto = st.text_area("", height=160, placeholder="Escribe o pega aquí el texto para analizar...")
+        if st.button("EXECUTE SCAN // INICIAR ESCANEO"):
             if texto.strip():
-                with st.spinner("Procesando telemetría emocional..."):
+                with st.spinner("Procesando espectro emocional..."):
                     res = procesar_texto(texto)
                     
                     st.markdown("<br>", unsafe_allow_html=True)
-                    st.markdown("<div class='blade-title'>🏆 RESULTADO DEL DIAGNÓSTICO</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='card-title'>📊 RESULTADO DE LA TELEMETRÍA</div>", unsafe_allow_html=True)
                     
-                    # LOGRO DESBLOQUEADO
                     if res["sentimiento"] > 0.05:
-                        msg = "¡LOGRO DESBLOQUEADO! (50G) — Sentimiento Positivo / High Vibes Detectadas"
-                        color_border = "#9bf00b"
+                        diag = "SENTIMIENTO POSITIVO // VIBRAS OPTIMISTAS DETECTADAS"
+                        icon = "🟢"
+                        c_border = "#00ff66"
                     elif res["sentimiento"] < -0.05:
-                        msg = "¡LOGRO DESBLOQUEADO! (20G) — Sentimiento Negativo / Dark Mood Detectado"
-                        color_border = "#ff3333"
+                        diag = "SENTIMIENTO NEGATIVO // TENSION / CRITICIDAD DETECTADA"
+                        icon = "🔴"
+                        c_border = "#ff3355"
                     else:
-                        msg = "¡LOGRO DESBLOQUEADO! (10G) — Sentimiento Neutral / Estado Estable"
-                        color_border = "#ffff00"
+                        diag = "SENTIMIENTO NEUTRAL // ESTADO ESTABLE / EQUILIBRADO"
+                        icon = "🟡"
+                        c_border = "#ffff00"
 
                     st.markdown(f"""
-                    <div class="achievement-unlocked" style="border-color: {color_border};">
-                        <div style="font-size: 2.2rem;">🏆</div>
+                    <div class="status-box" style="border-color: {c_border};">
+                        <div style="font-size: 2rem;">{icon}</div>
                         <div>
-                            <div style="color: #ffffff; font-family: 'Orbitron'; font-size: 0.9rem; text-transform: uppercase;">Misión Completada</div>
-                            <div style="color: #9bf00b; font-weight: bold; font-size: 1.1rem;">{msg}</div>
+                            <div style="color: #ffffff; font-family: 'Orbitron'; font-size: 0.85rem;">DIAGNÓSTICO FINAL</div>
+                            <div style="color: {c_border}; font-weight: bold; font-size: 1.1rem; font-family: 'Orbitron';">{diag}</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -337,46 +341,46 @@ with col_left:
                         st.progress(res["subjetividad"])
                         st.write(f"Valor: `{res['subjetividad']:.2f}`")
 
-                    # Frecuencia de palabras
+                    # Frecuencia
                     st.markdown("<br>", unsafe_allow_html=True)
-                    st.write("**Top Palabras Más Usadas:**")
+                    st.write("**Términos Más Frecuentes:**")
                     if res["contador_palabras"]:
                         top_p = dict(list(res["contador_palabras"].items())[:8])
                         st.bar_chart(top_p)
 
             else:
-                st.warning("Por favor ingresa texto en la consola.")
+                st.warning("Escribe algún comando o texto antes de presionar escanear.")
 
     elif modo == "Archivo de Texto":
-        archivo = st.file_uploader("Cargar archivo (.txt, .md, .csv)", type=["txt", "csv", "md"])
+        archivo = st.file_uploader("Cargar documento de datos (.txt, .md, .csv)", type=["txt", "csv", "md"])
         if archivo is not None:
             contenido = archivo.getvalue().decode("utf-8")
-            if st.button("PRESS [A] TO SCAN FILE"):
-                with st.spinner("Analizando archivo de datos..."):
+            if st.button("ANALYZING FILE DATA"):
+                with st.spinner("Decodificando archivo..."):
                     res = procesar_texto(contenido)
-                    st.success("¡Archivo analizado con éxito!")
+                    st.success("¡Datos procesados con éxito!")
                     st.write(f"Polaridad General: `{res['sentimiento']:.2f}`")
                     st.write(f"Subjetividad General: `{res['subjetividad']:.2f}`")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-with col_right:
+with col_info:
     st.markdown("""
-    <div class="xbox-blade">
-        <div class="blade-title">⚙️ SYSTEM INFO</div>
+    <div class="cyber-card">
+        <div class="card-title">🔍 ESPECIFICACIONES</div>
         <p style="font-size: 0.9rem; color: #a3c2a0;">
-            <b>Motor:</b> TextBlob NLP v2.0<br>
-            <b>Consola:</b> Bee's Dashboard<br>
-            <b>Traducción:</b> Google Translation Engine
+            <b>Módulo NLP:</b> TextBlob Engine<br>
+            <b>Traducción:</b> Google Translate API<br>
+            <b>Interfaz:</b> Metal Cyber HUD
         </p>
     </div>
     
-    <div class="xbox-blade">
-        <div class="blade-title">🟢 AMIGOS EN LÍNEA</div>
-        <ul style="padding-left: 15px; font-size: 0.9rem;">
-            <li>MasterChief_117 (Jugando Halo 3)</li>
-            <li>Marcus_Fenix (Gears of War)</li>
-            <li>Cortana_AI (En el menú)</li>
-        </ul>
+    <div class="cyber-card">
+        <div class="card-title">🛡️ ESTADO DE RED</div>
+        <p style="font-size: 0.85rem; color: #00ff66;">
+            [OK] CONEXIÓN SEGURA<br>
+            [OK] MOTOR DE BÚSQUEDA LISTO<br>
+            [OK] MEMORIA BUFFER VACIADA
+        </p>
     </div>
     """, unsafe_allow_html=True)
