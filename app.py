@@ -1,35 +1,140 @@
+"""
+🐝 Bee Emo-tional — The Y2K Text & Sentiment Analyzer Blog
+Aplicación Streamlit estilo Blog de los 2000s para análisis completo de texto.
+
+Dependencias principales:
+    pip install streamlit textblob pandas googletrans==4.0.0-rc1
+"""
+
 import streamlit as st
 import pandas as pd
 from textblob import TextBlob
 import re
-from googletrans import Translator
 
-# Configuración de la página
+# ─────────────────────────────────────────────
+# CONFIGURACIÓN DE PÁGINA Y2K
+# ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="Analizador de Texto Simple",
-    page_icon="📊",
-    layout="wide"
+    page_title="★~ Bee Emo-tional ~★ Text Diary Analyzer",
+    page_icon="🐝",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Título y descripción
-st.title("📝 Analizador de Texto con TextBlob")
+# ─────────────────────────────────────────────
+# ESTILOS RETRO BLOG (AÑOS 2000 / MYSPACE / BLOGGER)
+# ─────────────────────────────────────────────
 st.markdown("""
-Esta aplicación utiliza TextBlob para realizar un análisis básico de texto:
-- Análisis de sentimiento y subjetividad
-- Extracción de palabras clave
-- Análisis de frecuencia de palabras
-""")
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,700;1,400&family=Press+Start+2P&display=swap');
 
-# Barra lateral
-st.sidebar.title("Opciones")
-modo = st.sidebar.selectbox(
-    "Selecciona el modo de entrada:",
-    ["Texto directo", "Archivo de texto"]
-)
+    /* Fondo degradado estilo Web 2.0 / Y2K */
+    .stApp {
+        background: linear-gradient(135deg, #ff99dd 0%, #ffcc00 25%, #66ffff 50%, #ff66cc 75%, #cc66ff 100%) !important;
+        background-attachment: fixed !important;
+        font-family: 'Comic Sans MS', 'Comic Neue', cursive, sans-serif !important;
+    }
 
-# Función para contar palabras sin depender de NLTK
+    /* Sidebar estilo Perfil de Myspace / MSN */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #ff007f 0%, #4b0082 100%) !important;
+        border-right: 4px dashed #ffff00 !important;
+        box-shadow: 5px 0px 15px rgba(0,0,0,0.3);
+    }
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+        font-family: 'Comic Sans MS', cursive !important;
+    }
+
+    /* Header del Blog */
+    .blog-header {
+        background: #ffff00;
+        border: 4px solid #ff007f;
+        box-shadow: 8px 8px 0px #00ffff, 16px 16px 0px #ff007f;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 25px;
+        border-radius: 15px;
+    }
+    
+    .blog-title {
+        font-family: 'Press Start 2P', 'Comic Sans MS', cursive !important;
+        color: #ff007f !important;
+        text-shadow: 3px 3px 0px #00ffff, 6px 6px 0px #000000;
+        font-size: 2.2rem;
+        margin: 0;
+    }
+
+    .blog-subtitle {
+        color: #7928ca;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-top: 10px;
+    }
+
+    /* Contenedores estilo Entrada de Blog / Posts */
+    .blog-post {
+        background: #ffffff;
+        border: 4px solid #000000;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 8px 8px 0px #ff007f;
+    }
+
+    .post-header {
+        background: #00ffff;
+        padding: 10px 15px;
+        border-radius: 10px;
+        border: 2px solid #000000;
+        font-weight: bold;
+        color: #000000;
+        margin-bottom: 15px;
+    }
+
+    /* Botones personalizados estilo Neón */
+    .stButton > button {
+        background: linear-gradient(180deg, #ff007f 0%, #ff66cc 100%) !important;
+        color: #ffffff !important;
+        border: 3px solid #000000 !important;
+        border-radius: 15px !important;
+        font-family: 'Comic Sans MS', cursive !important;
+        font-size: 1.1rem !important;
+        font-weight: bold !important;
+        box-shadow: 4px 4px 0px #000000 !important;
+        text-shadow: 1px 1px 0px #000 !important;
+        width: 100%;
+    }
+    .stButton > button:hover {
+        transform: translate(-2px, -2px) !important;
+        box-shadow: 6px 6px 0px #00ffff !important;
+    }
+
+    /* Cajas de texto e inputs */
+    textarea, input[type="text"] {
+        background-color: #ffffcc !important;
+        border: 3px solid #ff007f !important;
+        border-radius: 10px !important;
+        color: #000000 !important;
+        font-family: 'Comic Sans MS', cursive !important;
+    }
+
+    /* Modificación de Expanders */
+    .streamlit-expanderHeader {
+        background-color: #ffcc00 !important;
+        border: 2px solid #000 !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# FUNCIONES DE PROCESAMIENTO DE TEXTO
+# ─────────────────────────────────────────────
+
 def contar_palabras(texto):
-    # Lista básica de palabras vacías en español e inglés
+    """Filtra palabras vacías y obtiene la frecuencia de términos."""
     stop_words = set([
         "a", "al", "algo", "algunas", "algunos", "ante", "antes", "como", "con", "contra",
         "cual", "cuando", "de", "del", "desde", "donde", "durante", "e", "el", "ella",
@@ -45,7 +150,6 @@ def contar_palabras(texto):
         "tiene", "tienen", "todo", "todos", "tu", "tus", "tuya", "tuyas", "tuyo", "tuyos", 
         "tú", "un", "una", "uno", "unos", "vosotras", "vosotros", "vuestra", "vuestras", 
         "vuestro", "vuestros", "y", "ya", "yo",
-        # Inglés
         "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", 
         "any", "are", "aren't", "as", "at", "be", "because", "been", "before", "being", 
         "below", "between", "both", "but", "by", "can't", "cannot", "could", "couldn't", 
@@ -61,71 +165,51 @@ def contar_palabras(texto):
         "the", "their", "theirs", "them", "themselves", "then", "there", "there's", 
         "these", "they", "they'd", "they'll", "they're", "they've", "this", "those", 
         "through", "to", "too", "under", "until", "up", "very", "was", "wasn't", "we", 
-        "we'd", "we'll", "we're", "we've", "were",         "weren't", "what", "what's", "when", 
+        "we'd", "we'll", "we're", "we've", "were", "weren't", "what", "what's", "when", 
         "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why", 
         "why's", "with", "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've",
         "your", "yours", "yourself", "yourselves"
     ])
     
-    # Limpiar y tokenizar texto
     palabras = re.findall(r'\b\w+\b', texto.lower())
+    palabras_filtradas = [p for p in palabras if p not in stop_words and len(p) > 2]
     
-    # Filtrar palabras vacías y contar frecuencias
-    palabras_filtradas = [palabra for palabra in palabras 
-                         if palabra not in stop_words and len(palabra) > 2]
-    
-    # Contar frecuencias
     contador = {}
     for palabra in palabras_filtradas:
         contador[palabra] = contador.get(palabra, 0) + 1
-    
-    # Ordenar por frecuencia
+        
     contador_ordenado = dict(sorted(contador.items(), key=lambda x: x[1], reverse=True))
-    
     return contador_ordenado, palabras_filtradas
 
-# Inicializar el traductor
-translator = Translator()
-
-# Función para traducir texto del español al inglés
 def traducir_texto(texto):
+    """Manejo de traducción al inglés con fallback en caso de fallar."""
     try:
+        from googletrans import Translator
+        translator = Translator()
         traduccion = translator.translate(texto, src='es', dest='en')
         return traduccion.text
     except Exception as e:
-        st.error(f"Error al traducir: {e}")
-        return texto  # Devolver el texto original si falla la traducción
+        return texto
 
-# Función para procesar el texto con TextBlob (versión con traducción)
 def procesar_texto(texto):
-    # Guardar el texto original
+    """Ejecuta el pipeline completo de análisis."""
     texto_original = texto
-    
-    # Traducir el texto al inglés para mejor análisis
     texto_ingles = traducir_texto(texto)
-    
-    # Analizar el texto traducido con TextBlob
     blob = TextBlob(texto_ingles)
     
-    # Análisis de sentimiento (esto no requiere corpus adicionales)
     sentimiento = blob.sentiment.polarity
     subjetividad = blob.sentiment.subjectivity
     
-    # Extraer frases de manera simplificada (del texto original)
-    frases_originales = [frase.strip() for frase in re.split(r'[.!?]+', texto_original) if frase.strip()]
+    frases_originales = [f.strip() for f in re.split(r'[.!?]+', texto_original) if f.strip()]
+    frases_traducidas = [f.strip() for f in re.split(r'[.!?]+', texto_ingles) if f.strip()]
     
-    # Extraer frases del texto traducido
-    frases_traducidas = [frase.strip() for frase in re.split(r'[.!?]+', texto_ingles) if frase.strip()]
-    
-    # Combinar frases originales y traducidas
     frases_combinadas = []
     for i in range(min(len(frases_originales), len(frases_traducidas))):
         frases_combinadas.append({
             "original": frases_originales[i],
             "traducido": frases_traducidas[i]
         })
-    
-    # Contar palabras con nuestra función simplificada (en el texto traducido)
+        
     contador_palabras, palabras = contar_palabras(texto_ingles)
     
     return {
@@ -138,57 +222,53 @@ def procesar_texto(texto):
         "texto_traducido": texto_ingles
     }
 
-# Función para crear visualizaciones usando componentes nativos de Streamlit
+# ─────────────────────────────────────────────
+# VISUALIZACIÓN DE RESULTADOS RETRO
+# ─────────────────────────────────────────────
 def crear_visualizaciones(resultados):
     col1, col2 = st.columns(2)
     
-    # Visualización de sentimiento y subjetividad con barras de progreso de Streamlit
     with col1:
-        st.subheader("Análisis de Sentimiento y Subjetividad")
+        st.subheader("🖤 Mood & Sentimiento")
         
-        # Normalizar valores para mostrarlos en barras de progreso
-        # Sentimiento va de -1 a 1, lo normalizamos a 0-1 para la barra
         sentimiento_norm = (resultados["sentimiento"] + 1) / 2
-        
-        st.write("**Sentimiento:**")
+        st.write("**Polaridad Emo-cional:**")
         st.progress(sentimiento_norm)
         
         if resultados["sentimiento"] > 0.05:
-            st.success(f"📈 Positivo ({resultados['sentimiento']:.2f})")
+            st.success(f"📈 Positivo / Cheerful vibes ({resultados['sentimiento']:.2f}) 😊")
         elif resultados["sentimiento"] < -0.05:
-            st.error(f"📉 Negativo ({resultados['sentimiento']:.2f})")
+            st.error(f"📉 Negativo / Pure Emo Mood ({resultados['sentimiento']:.2f}) 😔")
         else:
-            st.info(f"📊 Neutral ({resultados['sentimiento']:.2f})")
-        
-        # Subjetividad ya está en el rango 0-1
+            st.info(f"📊 Neutral / Balanced Vibe ({resultados['sentimiento']:.2f}) 😐")
+            
         st.write("**Subjetividad:**")
         st.progress(resultados["subjetividad"])
         
         if resultados["subjetividad"] > 0.5:
-            st.warning(f"💭 Alta subjetividad ({resultados['subjetividad']:.2f})")
+            st.warning(f"💭 Alta subjetividad / Muy personal ({resultados['subjetividad']:.2f})")
         else:
-            st.info(f"📋 Baja subjetividad ({resultados['subjetividad']:.2f})")
-    
-    # Palabras más frecuentes usando chart de Streamlit
+            st.info(f"📋 Baja subjetividad / Basado en datos ({resultados['subjetividad']:.2f})")
+
     with col2:
-        st.subheader("Palabras más frecuentes")
+        st.subheader("📊 Palabras Frecuentes (Top 10)")
         if resultados["contador_palabras"]:
             palabras_top = dict(list(resultados["contador_palabras"].items())[:10])
             st.bar_chart(palabras_top)
-    
-    # Mostrar texto traducido
-    st.subheader("Texto Traducido")
-    with st.expander("Ver traducción completa"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Texto Original (Español):**")
+
+    st.markdown("---")
+    st.subheader("🌐 Traducción al Inglés")
+    with st.expander("Ver diario traducido completo"):
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Original (Español):**")
             st.text(resultados["texto_original"])
-        with col2:
-            st.markdown("**Texto Traducido (Inglés):**")
+        with c2:
+            st.markdown("**Traducción (Inglés):**")
             st.text(resultados["texto_traducido"])
-    
-    # Análisis de frases
-    st.subheader("Frases detectadas")
+            
+    st.markdown("---")
+    st.subheader("✂️ Frases Detectadas & Análisis Individual")
     if resultados["frases"]:
         for i, frase_dict in enumerate(resultados["frases"][:10], 1):
             frase_original = frase_dict["original"]
@@ -201,68 +281,102 @@ def crear_visualizaciones(resultados):
                 if sentimiento > 0.05:
                     emoji = "😊"
                 elif sentimiento < -0.05:
-                    emoji = "😟"
+                    emoji = "🖤"
                 else:
-                    emoji = "😐"
-                
-                st.write(f"{i}. {emoji} **Original:** *\"{frase_original}\"*")
-                st.write(f"   **Traducción:** *\"{frase_traducida}\"* (Sentimiento: {sentimiento:.2f})")
-                st.write("---")
+                    emoji = "☁️"
+                    
+                st.markdown(f"**{i}. {emoji} Original:** *\"{frase_original}\"*")
+                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;**Traducido:** *\"{frase_traducida}\"* `(Score: {sentimiento:.2f})`")
+                st.markdown("<hr style='border:1px dashed #ccc;'>", unsafe_allow_html=True)
             except:
                 st.write(f"{i}. **Original:** *\"{frase_original}\"*")
-                st.write(f"   **Traducción:** *\"{frase_traducida}\"*")
-                st.write("---")
-    else:
-        st.write("No se detectaron frases.")
 
-# Lógica principal según el modo seleccionado
-if modo == "Texto directo":
-    st.subheader("Ingresa tu texto para analizar")
-    texto = st.text_area("", height=200, placeholder="Escribe o pega aquí el texto que deseas analizar...")
-    
-    if st.button("Analizar texto"):
-        if texto.strip():
-            with st.spinner("Analizando texto..."):
-                resultados = procesar_texto(texto)
-                crear_visualizaciones(resultados)
-        else:
-            st.warning("Por favor, ingresa algún texto para analizar.")
+# ─────────────────────────────────────────────
+# HEADER & SIDEBAR Y2K
+# ─────────────────────────────────────────────
+st.markdown("""
+<div class="blog-header">
+    <h1 class="blog-title">★~ Bee Emo-tional ~★</h1>
+    <p class="blog-subtitle">✨ Text & Diary Analyzer Blog Spot ~ Myspace Edition ✨</p>
+    <marquee style="color:#ff007f; font-weight:bold; margin-top:5px;">
+        🐝 Bienvenido a Bee Emo-tional 🐝 :: Analiza tus textos, diarios y canciones :: Listen to My Chemical Romance & Write!
+    </marquee>
+</div>
+""", unsafe_allow_html=True)
 
-elif modo == "Archivo de texto":
-    st.subheader("Carga un archivo de texto")
-    archivo = st.file_uploader("", type=["txt", "csv", "md"])
-    
-    if archivo is not None:
-        try:
-            contenido = archivo.getvalue().decode("utf-8")
-            with st.expander("Ver contenido del archivo"):
-                st.text(contenido[:1000] + ("..." if len(contenido) > 1000 else ""))
-            
-            if st.button("Analizar archivo"):
-                with st.spinner("Analizando archivo..."):
-                    resultados = procesar_texto(contenido)
-                    crear_visualizaciones(resultados)
-        except Exception as e:
-            st.error(f"Error al procesar el archivo: {e}")
+with st.sidebar:
+    st.markdown("### 🐝 Blogger Profile")
+    st.markdown("<b>User:</b> Bee_Emo_Queen<br><b>Status:</b> Online on MSN 🟢<br><b>Current Mood:</b> Analyzing Words... 🎧", unsafe_allow_html=True)
+    st.markdown("---")
+    st.title("⚙️ Menú de Entradas")
+    modo = st.selectbox(
+        "Selecciona el modo de entrada:",
+        ["Texto directo", "Archivo de texto"]
+    )
+    st.markdown("---")
+    st.markdown("<b>Music Playing:</b><br>🎵 *I'm Not Okay (I Promise)*", unsafe_allow_html=True)
 
-# Información adicional
-with st.expander("📚 Información sobre el análisis"):
+# ─────────────────────────────────────────────
+# CUERPO PRINCIPAL (POST DE BLOG)
+# ─────────────────────────────────────────────
+col_main, col_blogroll = st.columns([3, 1])
+
+with col_main:
     st.markdown("""
-    ### Sobre el análisis de texto
-    
-    - **Sentimiento**: Varía de -1 (muy negativo) a 1 (muy positivo)
-    - **Subjetividad**: Varía de 0 (muy objetivo) a 1 (muy subjetivo)
-    
-    ### Requisitos mínimos
-    
-    Esta aplicación utiliza únicamente:
-    ```
-    streamlit
-    textblob
-    pandas
-    ```
-    """)
+    <div class="blog-post">
+        <div class="post-header">
+            📝 POSTED BY Bee_Emo_Queen | 🕒 CATEGORY: TEXT ANALYZER 2000s
+        </div>
+    """, unsafe_allow_html=True)
 
-# Pie de página
+    if modo == "Texto directo":
+        st.subheader("✍️ Ingresa tu texto o entrada de diario")
+        texto = st.text_area("", height=180, placeholder="Escribe o pega aquí la letra de una canción, un diario o una frase...")
+        
+        if st.button("🔮 ANALIZAR VIBRAS Y TEXTO"):
+            if texto.strip():
+                with st.spinner("🤖 Leyendo tus secretos y calculando palabras..."):
+                    resultados = procesar_texto(texto)
+                    crear_visualizaciones(resultados)
+            else:
+                st.warning("Escribe algo antes de presionar el botón ~ ★")
+
+    elif modo == "Archivo de texto":
+        st.subheader("📁 Sube tu archivo de texto (.txt, .md, .csv)")
+        archivo = st.file_uploader("", type=["txt", "csv", "md"])
+        
+        if archivo is not None:
+            try:
+                contenido = archivo.getvalue().decode("utf-8")
+                with st.expander("📄 Vista previa del archivo"):
+                    st.text(contenido[:1000] + ("..." if len(contenido) > 1000 else ""))
+                
+                if st.button("🔮 ANALIZAR ARCHIVO"):
+                    with st.spinner("🤖 Leyendo archivo completo..."):
+                        resultados = procesar_texto(contenido)
+                        crear_visualizaciones(resultados)
+            except Exception as e:
+                st.error(f"Error al leer el archivo: {e}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_blogroll:
+    st.markdown("""
+    <div class="blog-post" style="padding:15px;">
+        <h4 style="margin-top:0; color:#ff007f; border-bottom:2px solid #000;">💖 Blogroll</h4>
+        <ul style="padding-left:15px; font-size:0.9rem;">
+            <li>xX_EmoBoy_2006_Xx</li>
+            <li>Glitter_Girl_Y2K</li>
+            <li>Punk_Rocker_99</li>
+        </ul>
+    </div>
+    
+    <div class="blog-post" style="padding:15px;">
+        <h4 style="margin-top:0; color:#7928ca; border-bottom:2px solid #000;">📚 Info del Análisis</h4>
+        <p style="font-size:0.85rem;">Este blog analiza el texto traduciéndolo al inglés para usar el léxico de TextBlob, extrayendo polaridad, subjetividad y conteo de palabras clave sin librerías pesadas.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Pie de página retro
 st.markdown("---")
-st.markdown("Desarrollado con ❤️ usando Streamlit y TextBlob")
+st.markdown("<p style='text-align: center; color: #000;'>★~ Bee Emo-tional Blog Spot — Hecho con Streamlit & TextBlob ~★</p>", unsafe_allow_html=True)
